@@ -8,16 +8,28 @@ import * as Amplitude from 'amplitudejs'
 
 let showLoader = ref(true)
 
+//@ts-ignore
+const route = useRoute(import.meta.env.BASE_URL + 'readers/[id]')
 
-const route = useRoute('/quran-audio-app/readers/[id]')
+//@ts-ignore
+const routeId = parseInt(route.params.id)
 const quranData: any = inject('quranData')
+let audios: any = []
+let pageNotFound = ''
+try {
+  audios = quranData[routeId - 1].audios
+} catch (e) {
+  pageNotFound = 'Page Not Found'
+  setTimeout(function () {
+    showLoader.value = false;
+  }, 1000)
+}
 onUnmounted(() => {
   Amplitude.stop()
 })
 const formContainer = ref<any>(null);
 
 onMounted(() => {
-  let audios = quranData[parseInt(route.params.id) - 1].audios
   let songs = audios.map((e: any) => {
     return {
       "url": e.urls[0],
@@ -79,10 +91,10 @@ onMounted(() => {
 </script>
 
 <template>
+  <h1 class="mt-6 text-3xl text-center" v-if="pageNotFound">{{ pageNotFound }}</h1>
   <!--  <div class="grid grid-cols-3 place-items-end"> class="overflow-auto"-->
   <div ref="formContainer" class="grid grid-cols-3 gap-y-4 pt-2 pl-2 mb-3">
-    <AudioCard v-for="p in quranData[parseInt(route.params.id) - 1].audios" :audio="p"/>
-    <!--    <AudioCard :audio="quranData[parseInt(route.params.id) - 1].audios[0]"/>-->
+    <AudioCard v-for="p in audios" :audio="p"/>
   </div>
   <div v-if="showLoader"
        class="fixed top-0 left-0 right-0 bottom-0 w-full h-screen z-50 overflow-hidden bg-gray-700 opacity-75 flex flex-col items-center justify-center">
